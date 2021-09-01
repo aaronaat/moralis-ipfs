@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://unpkg.com/moralis/dist/moralis.js"></script>
+  </head>
+  <body>
+    <h1>IPFS with Moralis</h1>
+
+    <button id="btn-login">Login</button> <br />
+
+    <input type="text" id="metadataName" name="metadataName" placeholder="name"><br />
+
+    <textarea id="metadataDesc" name="metadataDesc" cols="27" rows="9"></textarea><br />
+
+    <input type="file" id="fileInput" name="fileInput"><br />
+
+    <button id="go">Go</button>
+
+    <script>
+        // connect to Moralis server
+        Moralis.initialize("NU6Zgw3Z1a3hqh5bRrSxD2LGbokEYyKIRdzHjLnP");
+        Moralis.serverURL = "https://yg5myylqwgy0.moralisweb3.com:2053/server";
+    
+        /// metamask login
+        login = async () => {
+            Moralis.Web3.authenticate().then(function (user) {
+            console.log(user.get('ethAddress'));
+            })
+        }
+
+
+
+        // Save file input to IPFS
+        uploadImage = async () => {
+            const data = fileInput.files[0]
+            const file = new Moralis.File(data.name, data)
+            await file.saveIPFS();
+            console.log(file.ipfs(), file.hash());
+            return file.ipfs();
+        }
+        
+        // save metadata object
+        uploadMeta = async (imageURL) => {
+         
+            const name = document.getElementById('metadataName').value;
+            const desc = document.getElementById('metadataDesc').value;
+
+            const metadata = {
+                "name" : name,
+                "desc" : desc,
+                "image": imageURL
+            }
+
+            const file = new Moralis.File("file.json", {base64 : btoa(JSON.stringify(metadata))});
+            await file.saveIPFS();
+
+            console.log(file.ipfs());
+        }
+
+        go = async () => {
+           const image = await uploadImage();
+           await uploadMeta(image);
+        }
+
+
+        document.getElementById("btn-login").onclick = login;
+        document.getElementById("go").onclick = go;
+
+       
+    </script>
+  </body>
+</html>
